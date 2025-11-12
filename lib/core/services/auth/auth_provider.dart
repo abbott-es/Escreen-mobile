@@ -18,4 +18,12 @@ class AuthProvider extends InheritedNotifier<AuthController> {
     }
     return scope.notifier!;
   }
+
+  static AuthService? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AuthProvider>()?.notifier;
+  }
+
+  @override
+  bool updateShouldNotify(AuthProvider oldWidget) =>
+      notifier != oldWidget.notifier;
 }
