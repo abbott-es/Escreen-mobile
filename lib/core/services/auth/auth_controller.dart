@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_application_1/core/api/types.dart';
@@ -10,7 +9,7 @@ import 'auth_service.dart';
 
 class AuthController extends ChangeNotifier implements AuthService {
   final Api api;
-  final AuthTokenStore tokenStore;
+  final AuthTokenStore? tokenStore;
 
   AuthController({required this.api, required this.tokenStore}) {
     _bootstrap();
@@ -46,8 +45,8 @@ class AuthController extends ChangeNotifier implements AuthService {
   }
 
   Future<void> _bootstrap() async {
-    _access = await tokenStore.readAccessToken();
-    _refresh = await tokenStore.readRefreshToken();
+    _access = await tokenStore?.readAccessToken();
+    _refresh = await tokenStore?.readRefreshToken();
     _setAuthFlag(_access != null && _access!.isNotEmpty);
   }
 
@@ -71,7 +70,7 @@ class AuthController extends ChangeNotifier implements AuthService {
       _access = data.response.accessToken;
       _refresh = data.response.refreshToken;
 
-      await tokenStore.writeTokens(
+      await tokenStore?.writeTokens(
         accessToken: _access,
         refreshToken: _refresh,
       );
@@ -95,7 +94,7 @@ class AuthController extends ChangeNotifier implements AuthService {
   Future<void> _clearLocal() async {
     _access = null;
     _refresh = null;
-    await tokenStore.clearTokens();
+    await tokenStore?.clearTokens();
   }
 
   @override
