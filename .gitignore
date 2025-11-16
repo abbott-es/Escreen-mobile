@@ -33,6 +33,14 @@ migrate_working_dir/
 /build/
 /coverage/
 
+**/GeneratedPluginRegistrant.*
+**/Flutter/GeneratedPluginRegistrant.*
+*.dart.js
+*.js.deps
+*.js.map
+*.info.json
+*.module
+
 # Symbolication related
 app.*.symbols
 
