@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../screens/home_screen.dart';
+import 'package:flutter_application_1/screens/hub/hub_screen.dart';
 
 class AppRouter {
   static final Map<String, WidgetBuilder> routes = {
-    HomeScreen.route: (_) => const HomeScreen(),
+    HubScreen.route: (_) => const HubScreen(),
   };
 }

@@ -38,7 +38,11 @@ class AppHttpClient {
 
     dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (opts, handler) {},
+        onRequest: (opts, handler) async {
+          await _injectAuthHeader(opts);
+          _options.onRequest?.call(opts);
+          handler.next(opts);
+        },
         onResponse: (res, handler) {
           _options.onResponse?.call(res);
           handler.next(res);
