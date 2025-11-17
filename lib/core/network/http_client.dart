@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:dio/dio.dart';
+import 'package:flutter_application_1/core/api/types.dart';
 import 'package:flutter_application_1/core/network/types.dart';
+import 'package:flutter_application_1/core/utils/model_factory_registry.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart' show PrettyDioLogger;
 
 class AppHttpClient {
@@ -100,7 +102,7 @@ class AppHttpClient {
     return _decode<R>(res, decoder);
   }
 
-  Future<R> post<R>(
+  Future<ApiResponse<R, dynamic>> post<R>(
     String path, {
     dynamic data,
     Map<String, dynamic>? query,
@@ -115,7 +117,7 @@ class AppHttpClient {
       cancelToken: cancelToken,
       options: options,
     );
-    return _decode<R>(res, decoder);
+    return _parseApiResponse<R>(res.data);
   }
 
   Future<R> put<R>(
@@ -152,6 +154,24 @@ class AppHttpClient {
       options: options,
     );
     return _decode<R>(res, decoder);
+  }
+
+  ApiResponse<T, dynamic> _parseApiResponse<T>(dynamic json) {
+    final map = json as Map<String, dynamic>;
+
+    final respDyn = map['response'];
+    final parsedResponse = ModelFactoryRegistry.parse<T>(respDyn);
+
+    dynamic parsedErrors = map['errors'];
+
+    return ApiResponse<T, dynamic>(
+      statusCode: map['statusCode'] as int,
+      success: map['success'] as bool,
+      response: parsedResponse,
+      message: map['message'] as String?,
+      errors: parsedErrors,
+      traceId: map['traceId'] as String?,
+    );
   }
 
   R _decode<R>(Response res, R Function(dynamic data)? decoder) {

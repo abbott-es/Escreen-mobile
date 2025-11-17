@@ -194,7 +194,14 @@ class _AppButtonState extends State<AppButton> {
         children: [
           spinner,
           gap,
-          Opacity(opacity: 0.0, child: labelText),
+          Opacity(
+            opacity: 0.0,
+            child: Text(
+              widget.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       );
     }

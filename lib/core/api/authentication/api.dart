@@ -21,9 +21,9 @@ class AuthenticationApi {
   }
 
   Future<LoginResponse> login({required LoginOptions params}) {
-    return http.post<LoginResponse>(
+    return http.post<AuthTokens>(
       '/authentication-api/api/authentication/login',
-      data: params,
+      data: {'Username': params.userName, 'Password': params.password},
     );
   }
 }
