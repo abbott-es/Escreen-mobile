@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_application_1/core/api/types.dart';
@@ -78,9 +80,12 @@ class AuthController extends ChangeNotifier implements AuthService {
     } on DioException catch (e) {
       await _clearLocal();
       throw normalizeDioError(e);
-    } finally {
+    } catch (e, st) {
       await _clearLocal();
-      _setAuthFlag(false);
+      log('login error: $e\n$st');
+      rethrow;
+    } finally {
+      _isAuthenticating = false;
       _dec();
     }
   }

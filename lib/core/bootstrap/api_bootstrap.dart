@@ -1,5 +1,7 @@
 import 'dart:developer';
 import 'package:dio/dio.dart';
+import 'package:flutter_application_1/core/api/types.dart';
+import 'package:flutter_application_1/core/utils/model_factory_registry.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../network/http_client.dart';
 import '../network/types.dart';
@@ -96,11 +98,13 @@ Future<void> initApiLayer() async {
   const storage = FlutterSecureStorage();
   final tokenStore = SecureStorageTokenStore(storage);
 
+  ModelFactoryRegistry.register<AuthTokens>((m) => AuthTokens.fromJson(m));
+
   http = AppHttpClient(
     tokenStore: tokenStore,
     options: HttpOptions(
       baseUrl: Env.apiBaseUrl,
-      defaultHeaders: {'ENV': Env.nodeEnv, 'Accept': 'application/json'},
+      defaultHeaders: {'ENV': Env.nodeEnv},
       onRequest: (opts) {
         log(
           '${opts.method} ${opts.baseUrl}${opts.path}query=${opts.queryParameters}',
