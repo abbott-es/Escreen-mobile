@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AppLayout extends StatelessWidget {
   final PreferredSizeWidget? appBar;
   final Widget body;
+  final Widget? bottomNavigation;
 
   final List<Widget>? bottomActions;
   final NotchedShape? bottomBarShape;
@@ -23,6 +24,7 @@ class AppLayout extends StatelessWidget {
     super.key,
     this.appBar,
     required this.body,
+    this.bottomNavigation,
     this.bottomActions,
     this.bottomBarShape,
     this.bottomBarColor,
@@ -58,25 +60,28 @@ class AppLayout extends StatelessWidget {
       appBar: appBar,
       body: content,
 
-      bottomNavigationBar: hasBottomActions
-          ? BottomAppBar(
-              color: bottomBarColor,
-              elevation: bottomBarElevation,
-              shape:
-                  bottomBarShape ??
-                  (floatingActionButton != null
-                      ? const CircularNotchedRectangle()
-                      : null),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(children: bottomActions!),
-                  if (fabLocation == FloatingActionButtonLocation.centerDocked)
-                    const SizedBox(width: 48),
-                ],
-              ),
-            )
-          : null,
+      bottomNavigationBar:
+          bottomNavigation ??
+          (hasBottomActions
+              ? BottomAppBar(
+                  color: bottomBarColor,
+                  elevation: bottomBarElevation,
+                  shape:
+                      bottomBarShape ??
+                      (floatingActionButton != null
+                          ? const CircularNotchedRectangle()
+                          : null),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(children: bottomActions!),
+                      if (fabLocation ==
+                          FloatingActionButtonLocation.centerDocked)
+                        const SizedBox(width: 48),
+                    ],
+                  ),
+                )
+              : null),
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: fabLocation,
     );

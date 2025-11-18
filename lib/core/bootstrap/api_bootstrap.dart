@@ -89,6 +89,10 @@ class Env {
   );
   static int get startSessionCheckAfterMinutes =>
       nodeEnv == 'development' ? 2 : 1;
+  static const roleClaimsUrl = String.fromEnvironment(
+    'ROLE_URL',
+    defaultValue: 'http://schemas.microsoft.com/ws/2008/06/identity/claims',
+  );
 }
 
 late final AppHttpClient http;

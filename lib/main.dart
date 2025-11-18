@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/bootstrap/api_bootstrap.dart';
+import 'package:flutter_application_1/core/services/auth/app/auth_gate.dart';
 import 'package:flutter_application_1/core/services/auth/auth_controller.dart';
 import 'package:flutter_application_1/core/services/auth/auth_provider.dart';
 import 'package:flutter_application_1/screens/hub/hub_screen.dart';
@@ -24,22 +25,8 @@ class MyApp extends StatelessWidget {
       controller: auth,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: const AuthGate(),
+        home: AuthGate(auth: auth),
       ),
-    );
-  }
-}
-
-class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final auth = AuthProvider.of(context);
-    return ValueListenableBuilder<bool>(
-      valueListenable: auth.isAuthenticatedListenable,
-      builder: (_, authed, __) =>
-          authed ? const HubScreen() : const LoginScreen(),
     );
   }
 }
