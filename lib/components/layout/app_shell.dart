@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/business/auth/roles.dart';
+import 'package:flutter_application_1/core/controllers/navigation_controller.dart';
+import 'package:flutter_application_1/core/middleware/role_guard_middleware.dart';
 import 'package:flutter_application_1/screens/hub/auth-screens/dashboard_screen.dart';
 import 'app_layout.dart';
-import '../navigations/app_bottom_nav.dart';
+import 'package:flutter_application_1/components/navigations/app_bottom_nav.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.role});
@@ -115,35 +117,29 @@ class _AppShellState extends State<AppShell> {
 }
 
 class _TabRoot extends StatelessWidget {
-  const _TabRoot({required this.title});
+  const _TabRoot({required this.title, this.requiredRole});
   final String title;
+  final AppRole? requiredRole;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: FilledButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => _DetailsPage(title: '$title details'),
-            ),
+        onPressed: () async {
+          final nav = NavigationController.state;
+          final intent = RouteIntent(
+            routeName: '/details',
+            requiredRole: requiredRole,
+          );
+
+          await nav.call(
+            () => nav.openDetails(context, '$title details'),
+            context: context,
+            data: intent,
           );
         },
         child: Text('Open $title details'),
       ),
-    );
-  }
-}
-
-class _DetailsPage extends StatelessWidget {
-  const _DetailsPage({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text(title)),
     );
   }
 }

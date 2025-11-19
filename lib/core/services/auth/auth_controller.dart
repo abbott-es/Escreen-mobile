@@ -6,10 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_application_1/core/api/types.dart';
 import 'package:flutter_application_1/core/business/auth/jwt_utils.dart';
 import 'package:flutter_application_1/core/business/auth/roles.dart';
-import '../../api/api.dart';
-import '../../bootstrap/api_bootstrap.dart';
-import '../../network/types.dart';
-import '../../network/error_normalizer.dart';
+import 'package:flutter_application_1/core/api/api.dart';
+import 'package:flutter_application_1/core/bootstrap/api_bootstrap.dart';
+import 'package:flutter_application_1/core/network/types.dart';
+import 'package:flutter_application_1/core/network/error_normalizer.dart';
 import 'auth_service.dart';
 
 class AuthController extends ChangeNotifier implements AuthService {
