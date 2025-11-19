@@ -6,7 +6,7 @@ import '../navigations/app_bottom_nav.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.role});
-  final AppRole? role;
+  final AppRole role;
 
   @override
   State<AppShell> createState() => _AppShellState();

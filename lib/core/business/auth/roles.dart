@@ -1,8 +1,12 @@
 enum AppRole { driver, passenger }
 
 AppRole? roleFromString(String value) {
-  final v = value.toLowerCase().trim();
-  if (v.contains('driver')) return AppRole.driver;
-  if (v.contains('passenger')) return AppRole.passenger;
+  final normalized = value.trim().toLowerCase();
+  if (normalized == 'driver' || normalized.contains('driver')) {
+    return AppRole.driver;
+  }
+  if (normalized == 'passenger' || normalized.contains('passenger')) {
+    return AppRole.passenger;
+  }
   return null;
 }

@@ -92,9 +92,14 @@ class AuthController extends ChangeNotifier implements AuthService {
     try {
       final claims = decodeJwtPayload(access);
       final roleStr = extractRoleClaim(claims);
-      _setRole(roleStr != null ? roleFromString(roleStr) : null);
+      if (roleStr != null) {
+        final mapped = roleFromString(roleStr);
+        _setRole(mapped);
+      } else {
+        _setRole(null);
+      }
     } catch (e, st) {
-      log('failed to decode token for role: $e\n$st');
+      debugPrint('failed to decode token for role: $e\n$st');
       _setRole(null);
     }
   }

@@ -19,7 +19,9 @@ class HubScreen extends StatelessWidget {
         return ValueListenableBuilder(
           valueListenable: auth.roleListenable,
           builder: (context, role, _) {
-            if (role == null) {} //show splashscreen if it is still parsing.
+            if (role == null) {
+              return const Center(child: CircularProgressIndicator());
+            } //show splashscreen if it is still parsing.
             return AppShell(role: role);
           },
         );
