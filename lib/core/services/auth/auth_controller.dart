@@ -2,7 +2,10 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application_1/core/api/types.dart';
+import 'package:flutter_application_1/core/business/auth/jwt_utils.dart';
+import 'package:flutter_application_1/core/business/auth/roles.dart';
 import '../../api/api.dart';
 import '../../bootstrap/api_bootstrap.dart';
 import '../../network/types.dart';
@@ -23,6 +26,9 @@ class AuthController extends ChangeNotifier implements AuthService {
   bool _isAuthenticating = false;
   int _ops = 0;
 
+  AppRole? _role;
+  final ValueNotifier<AppRole?> _roleVN = ValueNotifier<AppRole?>(null);
+
   @override
   bool get isAuthenticated => _isAuthenticated;
 
@@ -35,6 +41,8 @@ class AuthController extends ChangeNotifier implements AuthService {
   final ValueNotifier<bool> _isAuthVN = ValueNotifier(false);
   @override
   ValueListenable<bool> get isAuthenticatedListenable => _isAuthVN;
+  ValueListenable<AppRole?> get roleListenable => _roleVN;
+  AppRole? get role => _role;
 
   void _inc() {
     _ops++;
@@ -49,13 +57,51 @@ class AuthController extends ChangeNotifier implements AuthService {
   Future<void> _bootstrap() async {
     _access = await tokenStore?.readAccessToken();
     _refresh = await tokenStore?.readRefreshToken();
-    _setAuthFlag(_access != null && _access!.isNotEmpty);
+
+    if (_access != null && _access!.isNotEmpty) {
+      _parseAndSetRoleFromAccess(_access!);
+
+      try {
+        final claims = decodeJwtPayload(_access!);
+        final exp = extractExpiry(claims);
+        if (exp != null && DateTime.now().toUtc().isAfter(exp)) {
+          await _clearLocal();
+          _setAuthFlag(false);
+          return;
+        }
+      } catch (_) {}
+      _setAuthFlag(true);
+    } else {
+      _setAuthFlag(false);
+    }
   }
 
   void _setAuthFlag(bool v) {
     _isAuthenticated = v;
     _isAuthVN.value = v;
     notifyListeners();
+  }
+
+  void _setRole(AppRole? r) {
+    _role = r;
+    _roleVN.value = r;
+    notifyListeners();
+  }
+
+  void _parseAndSetRoleFromAccess(String access) {
+    try {
+      final claims = decodeJwtPayload(access);
+      final roleStr = extractRoleClaim(claims);
+      if (roleStr != null) {
+        final mapped = roleFromString(roleStr);
+        _setRole(mapped);
+      } else {
+        _setRole(null);
+      }
+    } catch (e, st) {
+      debugPrint('failed to decode token for role: $e\n$st');
+      _setRole(null);
+    }
   }
 
   final _loginCb = useApiCallback<LoginResponse, LoginOptions>(
@@ -76,7 +122,10 @@ class AuthController extends ChangeNotifier implements AuthService {
         accessToken: _access,
         refreshToken: _refresh,
       );
+
+      _parseAndSetRoleFromAccess(_access!);
       _setAuthFlag(true);
+      HapticFeedback.selectionClick();
     } on DioException catch (e) {
       await _clearLocal();
       throw normalizeDioError(e);
