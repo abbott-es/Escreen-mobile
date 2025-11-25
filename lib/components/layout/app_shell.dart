@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/business/auth/roles.dart';
-import 'package:flutter_application_1/core/controllers/navigation_controller.dart';
-import 'package:flutter_application_1/core/middleware/role_guard_middleware.dart';
-import 'package:flutter_application_1/screens/hub/auth-screens/dashboard_screen.dart';
+import 'package:flutter_application_1/core/navigation/nav_config.dart';
 import 'app_layout.dart';
 import 'package:flutter_application_1/components/navigations/app_bottom_nav.dart';
 
@@ -16,29 +14,28 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _index = 0;
-  final _navKeys = List.generate(3, (_) => GlobalKey<NavigatorState>());
+  late List<GlobalKey<NavigatorState>> _navKeys;
+  late List<NavConfig> _tabs;
 
-  Widget _buildRoot(int tabIndex) {
-    final role = widget.role;
-    if (role == AppRole.driver) {
-      switch (tabIndex) {
-        case 0:
-          return const DashboardScreen();
-        case 1:
-          return const _TabRoot(title: 'Booking');
-        default:
-          return const _TabRoot(title: 'Profile');
-      }
-    } else {
-      switch (tabIndex) {
-        case 0:
-          return Text('Dashboard for passenger');
-        case 1:
-          return const _TabRoot(title: 'Trips');
-        default:
-          return const _TabRoot(title: 'Profile');
-      }
+  @override
+  void initState() {
+    super.initState();
+    _hydrateForRole(widget.role);
+  }
+
+  @override
+  void didUpdateWidget(covariant AppShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.role != widget.role) {
+      _hydrateForRole(widget.role);
+      _index = 0;
+      setState(() {});
     }
+  }
+
+  void _hydrateForRole(AppRole role) {
+    _tabs = navConfig[role] ?? [];
+    _navKeys = List.generate(_tabs.length, (_) => GlobalKey<NavigatorState>());
   }
 
   Future<void> _onReselect() async {
@@ -51,52 +48,16 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final role = widget.role;
-
-    final destinations = (role == AppRole.driver)
-        ? [
-            AppNavItem(
-              label: 'Home',
-              icon: Icons.dashboard_outlined,
-              selectedIcon: Icons.dashboard,
-            ),
-            AppNavItem(
-              label: 'Jobs',
-              icon: Icons.local_shipping_outlined,
-              selectedIcon: Icons.local_shipping,
-              badgeCount: 3,
-            ),
-            AppNavItem(
-              label: 'Profile',
-              icon: Icons.person_outline,
-              selectedIcon: Icons.person,
-            ),
-          ]
-        : [
-            AppNavItem(
-              label: 'Home',
-              icon: Icons.home_outlined,
-              selectedIcon: Icons.home,
-            ),
-            AppNavItem(
-              label: 'Trips',
-              icon: Icons.explore_outlined,
-              selectedIcon: Icons.explore,
-              badgeCount: 1,
-            ),
-            AppNavItem(
-              label: 'Profile',
-              icon: Icons.person_outline,
-              selectedIcon: Icons.person,
-            ),
-          ];
+    if (_tabs.length < 2) {
+      return const Scaffold(body: Center(child: Text('No tabs configured')));
+    }
 
     final stacks = List.generate(_navKeys.length, (i) {
       return Navigator(
         key: _navKeys[i],
         onGenerateRoute: (settings) {
           return MaterialPageRoute(
-            builder: (_) => _buildRoot(i),
+            builder: (_) => _tabs[i].builder(widget.role),
             settings: const RouteSettings(name: 'root'),
           );
         },
@@ -104,41 +65,22 @@ class _AppShellState extends State<AppShell> {
     });
 
     return AppLayout(
-      appBar: AppBar(title: Text(destinations[_index].label)),
+      appBar: AppBar(title: Text(_tabs[_index].label)),
       body: IndexedStack(index: _index, children: stacks),
       bottomNavigation: AppBottomNav(
-        items: destinations,
+        items: _tabs
+            .map(
+              (t) => AppNavItem(
+                label: t.label,
+                icon: t.icon,
+                selectedIcon: t.selectedIcon,
+                badgeCount: t.badgeCount,
+              ),
+            )
+            .toList(),
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
         onReselect: _onReselect,
-      ),
-    );
-  }
-}
-
-class _TabRoot extends StatelessWidget {
-  const _TabRoot({required this.title, this.requiredRole});
-  final String title;
-  final AppRole? requiredRole;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: FilledButton(
-        onPressed: () async {
-          final nav = NavigationController.state;
-          final intent = RouteIntent(
-            routeName: '/details',
-            requiredRole: requiredRole,
-          );
-
-          await nav.call(
-            () => nav.openDetails(context, '$title details'),
-            context: context,
-            data: intent,
-          );
-        },
-        child: Text('Open $title details'),
       ),
     );
   }

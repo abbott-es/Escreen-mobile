@@ -1,82 +1,13 @@
 import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter_application_1/core/api/types.dart';
+import 'package:flutter_application_1/core/bootstrap/storage.dart';
 import 'package:flutter_application_1/core/utils/model_factory_registry.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../network/http_client.dart';
 import '../network/types.dart';
 import '../network/error_normalizer.dart';
 import '../api/api.dart';
-
-class SecureStorageTokenStore implements AuthTokenStore {
-  static const _kAccess = 'auth_access_token';
-  static const _kRefresh = 'auth_refresh_token';
-
-  final FlutterSecureStorage _storage;
-  const SecureStorageTokenStore(this._storage);
-
-  static const AndroidOptions _aOptions = AndroidOptions(
-    encryptedSharedPreferences: true,
-    resetOnError: true,
-  );
-
-  static const IOSOptions _iOptions = IOSOptions(
-    accessibility: KeychainAccessibility.first_unlock,
-    synchronizable: false,
-  );
-
-  @override
-  Future<void> clearTokens() async {
-    await _storage.delete(
-      key: _kAccess,
-      aOptions: _aOptions,
-      iOptions: _iOptions,
-    );
-    await _storage.delete(
-      key: _kRefresh,
-      aOptions: _aOptions,
-      iOptions: _iOptions,
-    );
-  }
-
-  @override
-  Future<String?> readAccessToken() async {
-    return _storage.read(
-      key: _kAccess,
-      aOptions: _aOptions,
-      iOptions: _iOptions,
-    );
-  }
-
-  @override
-  Future<String?> readRefreshToken() async {
-    return _storage.read(
-      key: _kRefresh,
-      aOptions: _aOptions,
-      iOptions: _iOptions,
-    );
-  }
-
-  @override
-  Future<void> writeTokens({String? accessToken, String? refreshToken}) async {
-    if (accessToken != null) {
-      await _storage.write(
-        key: _kAccess,
-        value: accessToken,
-        aOptions: _aOptions,
-        iOptions: _iOptions,
-      );
-    }
-    if (refreshToken != null) {
-      await _storage.write(
-        key: _kRefresh,
-        value: refreshToken,
-        aOptions: _aOptions,
-        iOptions: _iOptions,
-      );
-    }
-  }
-}
 
 class Env {
   static const apiBaseUrl = String.fromEnvironment(
@@ -130,7 +61,23 @@ Future<void> initApiLayer() async {
           final ok = await http.refreshTokenAndSetHeader(
             doRefresh: () async {
               final tmpApi = Api(http);
-              return null; //replace w/ refresh token api
+              final refreshToken = await http.tokenStore?.readRefreshToken();
+
+              if (refreshToken == null || refreshToken.isEmpty) {
+                return null;
+              }
+
+              final refreshCb = await tmpApi.auth.refreshToken(
+                refreshToken: refreshToken,
+              );
+              await http.tokenStore?.writeTokens(
+                accessToken: refreshCb.response.accessToken,
+                refreshToken: refreshCb.response.refreshToken,
+              );
+
+              return {
+                'Authorization': 'Bearer ${refreshCb.response.accessToken}',
+              };
             },
           );
 
@@ -173,7 +120,7 @@ Future<void> initApiLayer() async {
   api = Api(http);
 }
 
-Future<R> callApi<R>(Future<R> Function(Api api) fn) async {
+Future<R> useApi<R>(Future<R> Function(Api api) fn) async {
   try {
     return await fn(api);
   } on DioException catch (e) {

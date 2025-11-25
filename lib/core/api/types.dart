@@ -67,3 +67,10 @@ class LoginOptions {
 
 typedef RefreshTokenResponse = ApiResponse<AuthTokens, dynamic>;
 typedef LoginResponse = ApiResponse<AuthTokens, dynamic>;
+typedef LogoutParams = AuthTokens;
+typedef CreateSessionResponse = ApiResponse<AuthTokens, dynamic>;
+
+class SsoSessionParams {
+  final String id;
+  const SsoSessionParams({required this.id});
+}
