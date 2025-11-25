@@ -3,11 +3,11 @@ import 'auth_controller.dart';
 import 'auth_service.dart';
 
 class AuthProvider extends InheritedNotifier<AuthController> {
-  AuthProvider({
+  const AuthProvider({
     super.key,
     required AuthController controller,
-    required Widget child,
-  }) : super(notifier: controller, child: child);
+    required super.child,
+  }) : super(notifier: controller);
 
   static AuthService of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AuthProvider>();

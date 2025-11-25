@@ -13,8 +13,8 @@ class AuthenticationApi {
     await http.post('/authentication-api/api/sso/session/keep-alive');
   }
 
-  Future<void> refreshToken({required String refreshToken}) {
-    return http.post<RefreshTokenResponse>(
+  Future<RefreshTokenResponse> refreshToken({required String refreshToken}) {
+    return http.post<AuthTokens>(
       '/authentication-api/api/authentication/refresh-token',
       data: {refreshToken: refreshToken},
     );
@@ -24,6 +24,22 @@ class AuthenticationApi {
     return http.post<AuthTokens>(
       '/authentication-api/api/authentication/login',
       data: {'Username': params.userName, 'Password': params.password},
+    );
+  }
+
+  Future<void> logout({required LogoutParams params}) {
+    return http.post(
+      '/authentication-api/api/authentication/logout',
+      data: params,
+    );
+  }
+
+  Future<CreateSessionResponse> createSession({
+    required SsoSessionParams params,
+  }) {
+    return http.post<AuthTokens>(
+      '/authentication-api/api/sso/session/create-session',
+      data: params,
     );
   }
 }

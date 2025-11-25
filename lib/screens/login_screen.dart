@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/components/buttons/app_button.dart';
 import 'package:flutter_application_1/components/forms/app_password_field.dart';
@@ -7,11 +5,6 @@ import 'package:flutter_application_1/components/forms/app_text_field.dart';
 import 'package:flutter_application_1/components/forms/validators.dart';
 import 'package:flutter_application_1/core/api/types.dart';
 import 'package:flutter_application_1/core/services/auth/auth_provider.dart';
-
-Future<String> fetchSomething() async {
-  await Future.delayed(const Duration(milliseconds: 600));
-  return 'Lols';
-}
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

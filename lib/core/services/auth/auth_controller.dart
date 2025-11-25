@@ -4,19 +4,38 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/core/api/types.dart';
+import 'package:flutter_application_1/core/bootstrap/storage.dart';
 import 'package:flutter_application_1/core/business/auth/jwt_utils.dart';
 import 'package:flutter_application_1/core/business/auth/roles.dart';
 import 'package:flutter_application_1/core/api/api.dart';
 import 'package:flutter_application_1/core/bootstrap/api_bootstrap.dart';
 import 'package:flutter_application_1/core/network/types.dart';
 import 'package:flutter_application_1/core/network/error_normalizer.dart';
+import 'package:flutter_application_1/core/services/session/session_service.dart';
+import 'package:flutter_application_1/core/utils/decoder.dart';
 import 'auth_service.dart';
 
 class AuthController extends ChangeNotifier implements AuthService {
   final Api api;
   final AuthTokenStore? tokenStore;
+  final SsoStorageStore ssoCookie;
 
-  AuthController({required this.api, required this.tokenStore}) {
+  final _loginCb = useApiCallback<LoginResponse, LoginOptions>(
+    (api, p) async => await api.auth.login(params: p),
+  );
+  final _logoutCb = useApiCallback(
+    (api, p) async => await api.auth.logout(params: p as LogoutParams),
+  );
+  final _createSessionCb = useApiCallback(
+    (api, p) async =>
+        await api.auth.createSession(params: p as SsoSessionParams),
+  );
+
+  AuthController(
+    this.ssoCookie, {
+    required this.api,
+    required this.tokenStore,
+  }) {
     _bootstrap();
   }
 
@@ -104,12 +123,9 @@ class AuthController extends ChangeNotifier implements AuthService {
     }
   }
 
-  final _loginCb = useApiCallback<LoginResponse, LoginOptions>(
-    (api, p) async => await api.auth.login(params: p),
-  );
-
   @override
   Future<void> login({required LoginOptions options}) async {
+    final sessionService = SessionService(authController: this);
     if (_isAuthenticating) return;
     _isAuthenticating = true;
     _inc();
@@ -123,8 +139,10 @@ class AuthController extends ChangeNotifier implements AuthService {
         refreshToken: _refresh,
       );
 
+      await ssoCookie.setSsoCookie(parseTokenId(_access!));
       _parseAndSetRoleFromAccess(_access!);
       _setAuthFlag(true);
+      sessionService.start();
       HapticFeedback.selectionClick();
     } on DioException catch (e) {
       await _clearLocal();
@@ -149,11 +167,48 @@ class AuthController extends ChangeNotifier implements AuthService {
     _access = null;
     _refresh = null;
     await tokenStore?.clearTokens();
+    await ssoCookie.clearSsoCookie();
   }
 
   @override
-  Future<void> logout() {
-    // TODO: implement logout
-    throw UnimplementedError();
+  Future<void> logout() async {
+    final sessionService = SessionService(authController: this);
+    _inc();
+    try {
+      String? currentAccessToken = _access;
+      String? currentRefreshToken = _refresh;
+
+      if (currentAccessToken == null || currentAccessToken == null) {
+        final ssoValue = await ssoCookie.getSsoCookie();
+        if (ssoValue == null || ssoValue.isEmpty) {
+          throw StateError(
+            'SSO Cookie is not set. Cannot create session for logout.',
+          );
+        }
+
+        final sessionResponse = await _createSessionCb(
+          SsoSessionParams(id: ssoValue),
+        );
+        currentAccessToken = sessionResponse.response.accessToken;
+        currentRefreshToken = sessionResponse.response.refreshToken;
+      }
+
+      if (currentAccessToken != null && currentRefreshToken != null) {
+        await _logoutCb(
+          LogoutParams(
+            accessToken: currentAccessToken,
+            refreshToken: currentRefreshToken,
+          ),
+        );
+      }
+    } catch (e, st) {
+      log('Failed executing the logout service: $e\n$st');
+    } finally {
+      await _clearLocal();
+      _setAuthFlag(false);
+      _isAuthenticating = false;
+      _dec();
+      sessionService.stop();
+    }
   }
 }
