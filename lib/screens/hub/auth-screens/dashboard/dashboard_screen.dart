@@ -35,6 +35,12 @@ class DashboardScreen extends StatelessWidget {
               child: LiveCard(role: role, isOnline: true),
             ),
           ),
+
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: const SliverToBoxAdapter(child: Divider()),
+          ),
+
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverToBoxAdapter(

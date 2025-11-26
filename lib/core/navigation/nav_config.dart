@@ -30,7 +30,7 @@ final Map<AppRole, List<NavConfig>> navConfig = {
       builder: (role) => DashboardScreen(role: role),
     ),
     NavConfig(
-      label: 'Jobs',
+      label: 'Carpool',
       icon: Icons.local_shipping_outlined,
       selectedIcon: Icons.local_shipping,
       badgeCount: 3,
