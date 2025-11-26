@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/components/buttons/app_button.dart';
 import 'package:flutter_application_1/core/business/auth/roles.dart';
 
 class LiveCard extends StatelessWidget {
@@ -47,11 +48,12 @@ class LiveCard extends StatelessWidget {
               ],
             ),
           ),
-          FilledButton(
+          AppButton(
             onPressed: () {
               //navigation to driver route or details
             },
-            child: Text(isDriver ? 'View Route' : 'Details'),
+            label: isDriver ? 'View Route' : 'Details',
+            variant: AppButtonVariant.tonal,
           ),
         ],
       ),

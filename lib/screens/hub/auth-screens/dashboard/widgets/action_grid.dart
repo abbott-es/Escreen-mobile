@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/core/business/auth/roles.dart';
 
-class _QuickAction {
+class QuickAction {
   final String label;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
-  _QuickAction(this.label, this.icon, this.color, this.onTap);
+  QuickAction(this.label, this.icon, this.color, this.onTap);
 }
 
 class ActionGrid extends StatelessWidget {
   const ActionGrid({super.key, required this.actions, required AppRole role});
-  final List<_QuickAction> actions;
+  final List<QuickAction> actions;
 
   @override
   Widget build(BuildContext context) {

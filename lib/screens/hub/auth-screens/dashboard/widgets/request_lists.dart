@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/components/buttons/app_button.dart';
+import 'package:flutter_application_1/components/cards/adaptive_card.dart';
 
 class RequestLists extends StatelessWidget {
   const RequestLists({
@@ -19,62 +21,25 @@ class RequestLists extends StatelessWidget {
 
     return Column(
       children: items.map((e) {
-        return Card(
-          elevation: 0,
-          margin: const EdgeInsets.only(bottom: 10),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isCompact =
-                  constraints.maxWidth < 360; // small screen check
-              return ListTile(
-                isThreeLine: true,
-                leading: const CircleAvatar(child: Icon(Icons.person)),
-                title: Text(
-                  e.$2,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.visible,
-                ),
-                subtitle: Text('${e.$3} • ${e.$4}'),
-
-                trailing: isCompact
-                    ? SizedBox(
-                        height: 48, // match ListTile height
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: OutlinedButton(
-                                onPressed: () => onReject(e.$1),
-                                child: const Text('Reject'),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Flexible(
-                              child: FilledButton(
-                                onPressed: () => onAccept(e.$1),
-                                child: const Text('Accept'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        alignment: WrapAlignment.end,
-                        children: [
-                          OutlinedButton(
-                            onPressed: () => onReject(e.$1),
-                            child: const Text('Reject'),
-                          ),
-                          FilledButton(
-                            onPressed: () => onAccept(e.$1),
-                            child: const Text('Accept'),
-                          ),
-                        ],
-                      ),
-              );
-            },
+        return AdaptiveCard(
+          leading: const CircleAvatar(child: Icon(Icons.person)),
+          title: e.$2,
+          subtitle: e.$3,
+          trailing: Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              AppButton(
+                onPressed: () => onReject(e.$1),
+                label: 'Reject',
+                variant: AppButtonVariant.outlined,
+              ),
+              AppButton(
+                onPressed: () => onAccept(e.$1),
+                label: 'Accept',
+                variant: AppButtonVariant.filled,
+              ),
+            ],
           ),
         );
       }).toList(),
@@ -108,13 +73,15 @@ class UpcomingRidesList extends StatelessWidget {
                 title: Text(e.$2, overflow: TextOverflow.visible),
                 subtitle: Text('${e.$3} • ${e.$4}'),
                 trailing: isCompact
-                    ? FilledButton(
+                    ? AppButton(
                         onPressed: () => onOpen(e.$1),
-                        child: const Text('Open'),
+                        label: 'Open',
+                        variant: AppButtonVariant.filled,
                       )
-                    : FilledButton(
+                    : AppButton(
                         onPressed: () => onOpen(e.$1),
-                        child: const Text('Open'),
+                        label: 'Open',
+                        variant: AppButtonVariant.filled,
                       ),
               );
             },
